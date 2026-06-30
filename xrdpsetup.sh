@@ -29,7 +29,11 @@ echo "Updating /etc/xrdp/startwm.sh..."
 cp /etc/xrdp/startwm.sh /etc/xrdp/startwm.sh.bak
 
 # Add required environment variables under comments section
-sed -i '/^#.*$/a export GNOME_SHELL_SESSION_MODE=ubuntu\nexport XDG_CURRENT_DESKTOP=ubuntu:GNOME' /etc/xrdp/startwm.sh
+sed -i '/# locale and the user environment properly\./a\
+export GNOME_SHELL_SESSION_MODE=ubuntu\
+export XDG_CURRENT_DESKTOP=ubuntu:GNOME
+' /etc/xrdp/startwm.sh
+
 
 echo "Reloading systemd daemon..."
 systemctl daemon-reload
@@ -40,5 +44,15 @@ echo "Settting up Hyper‑V Integration Services (Enlightenments)"
 apt install linux-tools-generic linux-cloud-tools-generic linux-tools-$(uname -r) linux-cloud-tools-$(uname -r) -y
 
 systemctl enable hv-kvp-daemon
+
+echo "Creating monthly maintenance cron jobs..."
+
+cat << 'EOF' | crontab -
+# Monthly maintenance - 2:00 AM on the 28th
+0 2 28 * * apt-get update && apt-get dist-upgrade -y
+
+# Monthly reboot - 4:00 AM on the 28th
+0 4 28 * * reboot
+EOF
 
 echo "Setup complete. Poweroff System."
